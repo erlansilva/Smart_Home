@@ -1,0 +1,38 @@
+﻿@page "/"
+@using MQTTnet
+@using MQTTnet.Client
+@using MQTTnet.Formatter
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(firstRender){
+            var mqttFactory = new MqttFactory();
+
+            using (var mqttClient = mqttFactory.CreateMqttClient())
+            {
+                // Use builder classes where possible in this project.
+                var mqttClientOptions = new MqttClientOptionsBuilder().WithTcpServer("192.168.18.226").Build();
+
+                // This will throw an exception if the server is not available.
+                // The result from this message returns additional data which was sent
+                // from the server. Please refer to the MQTT protocol specification for details.
+                var response = await mqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
+
+                Console.WriteLine("The MQTT client is connected.");
+
+                // Send a clean disconnect to the server by calling _DisconnectAsync_. Without this the TCP connection
+                // gets dropped and the server will handle this as a non clean disconnect (see MQTT spec for details).
+                var mqttClientDisconnectOptions = mqttFactory.CreateClientDisconnectOptionsBuilder().Build();
+
+                await mqttClient.DisconnectAsync(mqttClientDisconnectOptions, CancellationToken.None);
+            }
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+}
