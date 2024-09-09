@@ -1,5 +1,7 @@
 ﻿using MQTTnet.AspNetCore;
 using MQTTnet.Server;
+using System;
+using System.Text;
 
 namespace Smart.Home.Server.MqttConfig
 {
@@ -50,6 +52,15 @@ namespace Smart.Home.Server.MqttConfig
                 Console.WriteLine($"Client '{eventArgs.ClientId}' wants to connect. Accepting!");
                 return Task.CompletedTask;
             }
+
+
+            public Task OnInterceptingPublish(InterceptingPublishEventArgs args)
+            {
+                var msg = Encoding.UTF8.GetString(args.ApplicationMessage.PayloadSegment);
+                Console.WriteLine($"Topic:{args.ApplicationMessage.Topic}, MSG: {msg}");
+
+                return Task.CompletedTask;
+            }
         }
 
         sealed class Startup
@@ -76,6 +87,7 @@ namespace Smart.Home.Server.MqttConfig
 
                         server.ValidatingConnectionAsync += mqttController.ValidateConnection;
                         server.ClientConnectedAsync += mqttController.OnClientConnected;
+                        server.InterceptingPublishAsync += mqttController.OnInterceptingPublish;
                     });
             }
 
